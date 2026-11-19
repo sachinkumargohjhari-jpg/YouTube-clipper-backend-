@@ -35,7 +35,7 @@ ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 COOKIES = os.getenv("YT_COOKIES")  # path to cookies.txt (needed on most cloud IPs)
 ALLOWED_HOSTS = {"youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"}
 
-app = FastAPI(title="AI Clipper API")
+app = FastAPI(title="AI Clipper API", docs_url="/docs", redoc_url="/redoc", openapi_url="/openapi.json")
 app.add_middleware(CORSMiddleware, allow_origins=ORIGINS, allow_methods=["*"], allow_headers=["*"])
 
 JOBS: dict[str, dict] = {}
@@ -358,3 +358,4 @@ def download_clip(job_id: str, index: int):
     if not f.exists():
         raise HTTPException(404, "Clip nahi mili")
     return FileResponse(f, media_type="video/mp4", filename=f"short-{index}.mp4")
+          
