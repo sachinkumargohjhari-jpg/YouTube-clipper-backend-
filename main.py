@@ -20,7 +20,7 @@ import cv2
 import yt_dlp
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from faster_whisper import WhisperModel
 from pydantic import BaseModel
 
@@ -283,10 +283,21 @@ def run_job(jid: str, req: ProcessIn, meta: dict):
 
 
 # ---------------------------------------------------------------- endpoints
+BASE_DIR = Path(__file__).resolve().parent
+
+
 @app.get("/", include_in_schema=False)
 def home():
-    """Website (index.html) isi server se serve hoti hai, taaki API same-origin rahe."""
-    return FileResponse(Path(__file__).parent / "index.html")
+    """Root URL (/) par website (index.html) serve karta hai."""
+    page = BASE_DIR / "index.html"
+    if not page.is_file():
+        return HTMLResponse(
+            "<h3>index.html nahi mili</h3><p>index.html ko main.py ke saath ek hi folder mein "
+            "rakhein aur Dockerfile mein <code>COPY main.py index.html ./</code> likhein.</p>"
+            "<p>API docs: <a href='/docs'>/docs</a></p>",
+            status_code=500,
+        )
+    return FileResponse(page, media_type="text/html")
 
 
 @app.get("/api/health")
@@ -347,4 +358,4 @@ def download_clip(job_id: str, index: int):
     if not f.exists():
         raise HTTPException(404, "Clip nahi mili")
     return FileResponse(f, media_type="video/mp4", filename=f"short-{index}.mp4")
-    
+                              
