@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="hi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aurum Clips</title>
+<style>
+:root{--bg:#0A0A0A;--line:rgba(255,255,255,.1);--tx:#F3EEE0;--mut:#9A958A;--gold:#D4AF37}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(600px 300px at 50% -50px,rgba(139,92,246,.22),transparent),var(--bg);color:var(--tx);font-family:system-ui,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+main{max-width:980px;margin:0 auto;padding:26px 16px 60px}
+h1{font-size:clamp(28px,8vw,52px);margin:10px 0;line-height:1.05}.g{background:linear-gradient(120deg,#F5E6A8,#D4AF37,#9d7d1b);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand{color:var(--gold);font-weight:800;letter-spacing:.05em}.s{color:var(--mut);line-height:1.5}
+input,select,button{font:inherit;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.4);color:var(--tx);padding:13px;min-width:0}
+input{width:100%}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}@media(min-width:640px){.row{grid-template-columns:repeat(4,1fr)}}
+label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--mut)}
+.cta{width:100%;margin-top:12px;border:0;font-weight:800;color:#1a1405;background:linear-gradient(120deg,#F5E6A8,#D4AF37 55%,#a98417);cursor:pointer}
+.cta:disabled{opacity:.5}
+#st{margin-top:18px;display:none;border:1px solid var(--line);border-radius:14px;padding:16px}
+.pb{height:6px;background:var(--line);border-radius:9px;margin-top:10px;overflow:hidden}.pb i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8B5CF6,#D4AF37);transition:width .5s}
+#err{color:#ff7b7b;margin-top:10px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-top:20px}
+.clip{border:1px solid var(--line);border-radius:18px;padding:12px;background:rgba(255,255,255,.04)}
+video{width:100%;aspect-ratio:9/16;max-height:440px;background:#000;border-radius:12px}
+.sc{display:inline-block;color:var(--gold);border:1px solid var(--gold);border-radius:99px;padding:3px 10px;font-size:12px;font-weight:700;margin:10px 0 6px}
+.dl{display:block;text-align:center;text-decoration:none;padding:13px;border-radius:12px;font-weight:800;color:#1a1405;background:linear-gradient(120deg,#F5E6A8,#D4AF37 55%,#a98417)}
+</style></head><body><main>
+<div class="brand">AURUM CLIPS</div>
+<h1>Ek link se <span class="g">viral Shorts</span></h1>
+<p class="s">YouTube video ya live stream ka link dalein. AI clips banayega aur aap MP4 download kar sakenge. Pehli baar server jagne mein ~1 minute lag sakta hai.</p>
+<input id="url" placeholder="Paste YouTube Video or Live Stream Link here..." aria-label="YouTube link">
+<div class="row">
+<label>Quality<select id="res"><option value="2160">4K (2160p)</option><option value="1440">2K (1440p)</option><option value="1080" selected>1080p</option><option value="720">720p</option></select></label>
+<label>Clip length<select id="len"><option value="0">Auto</option><option value="30">30s</option><option value="60" selected>60s</option><option value="90">90s</option></select></label>
+<label>Language<select id="lang"><option value="">Auto-detect</option><option value="hi">Hindi</option><option value="en">English</option><option value="es">Spanish</option><option value="ar">Arabic</option></select></label>
+<label>Captions<select id="cs"><option value="bold">Bold (Hormozi)</option><option value="karaoke">Karaoke</option><option value="minimal">Minimal</option><option value="off">Off</option></select></label>
+</div>
+<button class="cta" id="go">Generate AI Clips</button>
+<div id="st"><div id="stage">Shuru ho raha hai...</div><div class="pb"><i id="pb"></i></div></div>
+<div id="err"></div>
+<div class="grid" id="grid"></div>
+</main>
+<script>
+var $=function(i){return document.getElementById(i)};
+function fail(m){$('err').textContent=m;$('go').disabled=false;$('st').style.display='none'}
+$('go').onclick=function(){
