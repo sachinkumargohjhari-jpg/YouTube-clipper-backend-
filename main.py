@@ -283,6 +283,12 @@ def run_job(jid: str, req: ProcessIn, meta: dict):
 
 
 # ---------------------------------------------------------------- endpoints
+@app.get("/", include_in_schema=False)
+def home():
+    """Website (index.html) isi server se serve hoti hai, taaki API same-origin rahe."""
+    return FileResponse(Path(__file__).parent / "index.html")
+
+
 @app.get("/api/health")
 def health():
     return {"ok": True}
@@ -341,3 +347,4 @@ def download_clip(job_id: str, index: int):
     if not f.exists():
         raise HTTPException(404, "Clip nahi mili")
     return FileResponse(f, media_type="video/mp4", filename=f"short-{index}.mp4")
+    
