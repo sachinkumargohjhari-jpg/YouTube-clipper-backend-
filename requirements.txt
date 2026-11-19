@@ -1,6 +1,6 @@
 fastapi
 uvicorn[standard]
 pydantic>=2
-yt-dlp
+git+https://github.com/yt-dlp/yt-dlp.git
 faster-whisper
 opencv-python-headless
