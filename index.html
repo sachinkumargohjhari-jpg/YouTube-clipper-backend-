@@ -33,11 +33,74 @@ video{width:100%;aspect-ratio:9/16;max-height:440px;background:#000;border-radiu
 <label>Language<select id="lang"><option value="">Auto-detect</option><option value="hi">Hindi</option><option value="en">English</option><option value="es">Spanish</option><option value="ar">Arabic</option></select></label>
 <label>Captions<select id="cs"><option value="bold">Bold (Hormozi)</option><option value="karaoke">Karaoke</option><option value="minimal">Minimal</option><option value="off">Off</option></select></label>
 </div>
-<button class="cta" id="go">Generate AI Clips</button>
+<button class="cta" id="go" type="button" onclick="if(window.startClip){startClip()}else{alert('JavaScript load nahi hui. Purani index.html chal rahi hai ya script mein error hai.')}">Generate AI Clips</button>
 <div id="st"><div id="stage">Shuru ho raha hai...</div><div class="pb"><i id="pb"></i></div></div>
 <div id="err"></div>
+<pre id="dbg" style="margin-top:14px;padding:10px;border:1px dashed var(--line);border-radius:10px;color:var(--mut);font-size:12px;white-space:pre-wrap;max-height:200px;overflow:auto">Debug log:
+</pre>
 <div class="grid" id="grid"></div>
 </main>
 <script>
 (function(){
 var $=function(i){return document.getElementById(i)};
+var API='';  // same-origin
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function log(m){var t=new Date().toLocaleTimeString()+'  '+m;try{$('dbg').textContent+=t+'\n';$('dbg').scrollTop=1e9}catch(e){}console.log(t)}
+function showErr(m){$('err').textContent='Error: '+m;log('ERROR: '+m)}
+window.addEventListener('error',function(e){showErr('Script error: '+e.message+' (line '+e.lineno+')')});
+window.addEventListener('unhandledrejection',function(e){showErr('Unhandled: '+(e.reason&&e.reason.message||e.reason))});
+log('JavaScript load ho gayi. Page: '+location.href);
+
+function api(path,opt){
+  opt=opt||{};log((opt.method||'GET')+' '+path);
+  var ctl=new AbortController(),tm=setTimeout(function(){ctl.abort()},90000);opt.signal=ctl.signal;
+  return fetch(API+path,opt).then(function(r){
+    clearTimeout(tm);
+    return r.text().then(function(t){
+      log('Jawab: HTTP '+r.status+'  '+t.slice(0,200).replace(/\s+/g,' '));
+      var j=null;try{j=JSON.parse(t)}catch(e){}
+      if(!r.ok){var d=j&&j.detail;if(d&&typeof d!=='string')d=JSON.stringify(d);
+        throw new Error('HTTP '+r.status+' - '+(d||t.slice(0,120)||'khali jawab')+(r.status==404?' | yeh route server par nahi mila, /docs mein check karein':''))}
+      if(j===null)throw new Error('Server se JSON nahi aaya (galat jawab)');
+      return j})
+  },function(e){
+    clearTimeout(tm);
+    throw new Error(e&&e.name==='AbortError'?'Timeout: server ne 90 sec tak jawab nahi diya':'Network error ('+(e&&e.message)+'). Website ko Render ke link se kholein.')})
+}
+function fail(m){showErr(m);$('go').disabled=false;$('st').style.display='none'}
+function ping(n){
+  api('/api/health').then(function(){$('conn').textContent='Server connected \u2713';$('conn').style.color='#7CFF6B'})
+  .catch(function(e){
+    if(n<6){$('conn').textContent='Server jag raha hai, intezaar karein...';$('conn').style.color='#ffb86b';setTimeout(function(){ping(n+1)},8000)}
+    else{$('conn').textContent='Server connect nahi hua';showErr(e.message)}})
+}
+function show(cl){
+  $('grid').innerHTML=cl.map(function(c){
+    return '<div class="clip"><video controls playsinline preload="metadata" src="'+esc(c.download_url)+'"></video><div class="sc">'+esc(c.viral_score)+'/100 Viral</div><div style="font-weight:700;margin-bottom:10px">'+esc(c.title)+'</div><a class="dl" href="'+esc(c.download_url)+'" download>Download MP4</a></div>'}).join('')
+}
+function poll(id,errs){
+  api('/api/jobs/'+encodeURIComponent(id)).then(function(j){
+    $('stage').textContent=j.stage;$('pb').style.width=Math.max(j.progress,3)+'%';
+    if(j.status==='error')return fail('Job fail hui: '+j.error);
+    if(j.status==='done'){log('Clips taiyar: '+j.clips.length);$('st').style.display='none';$('go').disabled=false;return show(j.clips)}
+    setTimeout(function(){poll(id,0)},2500)
+  }).catch(function(e){if(errs>=5)return fail(e.message);log('Dobara try ('+(errs+1)+'/5)');setTimeout(function(){poll(id,errs+1)},4000)})
+}
+window.startClip=function(){
+  log('Button dabaya');
+  try{
+    var url=$('url').value.trim();$('err').textContent='';$('grid').innerHTML='';
+    if(!/^https?:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\//i.test(url)){return fail('Sahi YouTube link dalein (https://youtube.com/... ya https://youtu.be/...)')}
+    $('go').disabled=true;$('st').style.display='block';$('stage').textContent='Request server ko bhej rahe hain...';$('pb').style.width='3%';
+    var cs=$('cs').value;
+    var body={url:url,resolution:parseInt($('res').value,10),clip_length:parseInt($('len').value,10),
+      language:$('lang').value||null,caption_style:cs==='off'?'bold':cs,captions:cs!=='off'};
+    log('Body: '+JSON.stringify(body));
+    api('/api/process-clip',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(function(j){$('stage').textContent='Job shuru hui (ID: '+j.job_id.slice(0,6)+')';poll(j.job_id,0)})
+    .catch(function(e){fail(e.message)})
+  }catch(e){fail('Script error: '+e.message)}
+};
+ping(0);
+})();
+</script></body></html>
