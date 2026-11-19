@@ -25,6 +25,7 @@ video{width:100%;aspect-ratio:9/16;max-height:440px;background:#000;border-radiu
 <div class="brand">AURUM CLIPS</div>
 <h1>Ek link se <span class="g">viral Shorts</span></h1>
 <p class="s">YouTube video ya live stream ka link dalein. AI clips banayega aur aap MP4 download kar sakenge. Pehli baar server jagne mein ~1 minute lag sakta hai.</p>
+<div id="conn" class="s" style="font-size:13px;margin-bottom:8px">Server check ho raha hai...</div>
 <input id="url" placeholder="Paste YouTube Video or Live Stream Link here..." aria-label="YouTube link">
 <div class="row">
 <label>Quality<select id="res"><option value="2160">4K (2160p)</option><option value="1440">2K (1440p)</option><option value="1080" selected>1080p</option><option value="720">720p</option></select></label>
@@ -38,6 +39,5 @@ video{width:100%;aspect-ratio:9/16;max-height:440px;background:#000;border-radiu
 <div class="grid" id="grid"></div>
 </main>
 <script>
+(function(){
 var $=function(i){return document.getElementById(i)};
-function fail(m){$('err').textContent=m;$('go').disabled=false;$('st').style.display='none'}
-$('go').onclick=function(){
